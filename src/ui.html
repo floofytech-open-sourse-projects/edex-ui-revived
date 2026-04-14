@@ -110,7 +110,89 @@
                 i++;
             }, 80);
         </script>
+<!-- Bottom bar with Installed Apps -->
+<div id="bottom_bar" style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 140px;
+    background: rgba(0, 0, 0, 0.55);
+    border-top: 2px solid #00ffee;
+    display: flex;
+    flex-direction: row;
+    padding: 10px;
+    font-family: monospace;
+    color: #00ffee;
+    z-index: 9999;
+    overflow-x: auto;
+">
 
+    <!-- Clock -->
+    <div style="margin-right: 40px;">
+        <b>Clock</b><br>
+        <span id="bb_clock"></span>
+    </div>
+
+    <!-- Installed Apps -->
+    <div style="margin-right: 40px; min-width: 250px;">
+        <b>Installed Apps</b><br>
+        <div id="bb_apps_list" style="
+            margin-top: 5px;
+            max-height: 90px;
+            overflow-y: auto;
+            border: 1px solid #00ffee;
+            padding: 5px;
+        ">
+            Loading…
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Clock
+    setInterval(() => {
+        document.getElementById("bb_clock").textContent =
+            new Date().toLocaleTimeString();
+    }, 1000);
+
+    // Load apps from preload.js
+    async function loadInstalledApps() {
+        const list = document.getElementById("bb_apps_list");
+
+        try {
+            const apps = await window.api.scanApps();
+
+            if (!apps || apps.length === 0) {
+                list.textContent = "No apps found";
+                return;
+            }
+
+            list.innerHTML = apps
+                .map(app => `
+                    <div class='appItem'
+                         data-path="${app.path}"
+                         style='cursor:pointer; margin-bottom:3px;'>
+                        ${app.name}
+                    </div>
+                `)
+                .join("");
+
+            document.querySelectorAll(".appItem").forEach(el => {
+                el.onclick = () => {
+                    const path = el.getAttribute("data-path");
+                    window.api.runApp(path);
+                };
+            });
+
+        } catch (e) {
+            list.textContent = "Error loading apps";
+        }
+    }
+
+    loadInstalledApps();
+</script>
         <script src="_renderer.js"></script>
     </body>
 </html>
