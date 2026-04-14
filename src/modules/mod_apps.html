@@ -1,0 +1,60 @@
+<!-- modules/mod_apps.html -->
+<div id="mod_apps" class="module" style="
+    padding:12px;
+    font-family:monospace;
+    height:100%;
+    overflow-y:auto;
+    color:#00ffee;
+">
+  <h2 style="margin:0 0 8px 0; font-size:18px;">Installed Apps</h2>
+
+  <div id="scan_output" style="
+      white-space:pre;
+      font-size:14px;
+      line-height:1.25;
+  "></div>
+</div>
+
+<script>
+const out = document.getElementById("scan_output");
+
+function delay(ms) {
+  return new Promise(res => setTimeout(res, ms));
+}
+
+async function startScan() {
+  out.textContent = "=== SYSTEM SCAN INITIALIZED ===\n\n";
+
+  // Request full app list from backend
+  const apps = await window.eDex.scanApps();
+
+  // Animated scan effect
+  for (let i = 0; i < apps.length; i++) {
+    out.textContent += `[SCAN] ${apps[i]}\n`;
+    await delay(4); // smooth cyber-scan animation
+  }
+
+  out.textContent += `\n=== ${apps.length} APPLICATIONS FOUND ===\n\n`;
+
+  // Clickable app entries
+  apps.forEach(app => {
+    const line = document.createElement("div");
+    line.textContent = "• " + app;
+    line.style.cursor = "pointer";
+    line.style.marginBottom = "3px";
+
+    line.onclick = async () => {
+      const res = await window.eDex.runApp(app);
+      if (!res.ok) {
+        out.textContent += `\n[ERR] Failed to launch ${app}: ${res.error}\n`;
+      } else {
+        out.textContent += `\n[OK] Launched ${app}\n`;
+      }
+    };
+
+    out.appendChild(line);
+  });
+}
+
+startScan();
+</script>
